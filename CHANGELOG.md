@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `web-research` docs now reference `scripts/web.py` relative to the skill root,
+  with no host-specific path or environment variable, so the same copy works
+  unchanged in Claude Code, Codex, Cursor, and other skill hosts.
+
 ## [0.1.0] - 2026-10-19
 
 ### Added

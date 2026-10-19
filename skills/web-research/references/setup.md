@@ -8,8 +8,10 @@
 
 ```bash
 python -m pip install trafilatura
-python "${CLAUDE_PLUGIN_ROOT}/skills/web-research/scripts/web.py" doctor
+python scripts/web.py doctor
 ```
+
+（`scripts/web.py` 相对技能根目录；若当前不在该目录，用其绝对路径。）
 
 `doctor` 中 `checks.trafilatura.ok` 变为 `true` 即生效，无需改代码——脚本会自动优先使用它。
 

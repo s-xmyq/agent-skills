@@ -27,15 +27,17 @@ allowed-tools: Bash
 
 ## 命令
 
-脚本路径为 `${CLAUDE_PLUGIN_ROOT}/skills/web-research/scripts/web.py`。
-若 `CLAUDE_PLUGIN_ROOT` 未设置（例如把本目录单独复制到本机 skills 目录），
-把 `${CLAUDE_PLUGIN_ROOT}/skills/web-research` 替换成你实际存放的目录。
-若 `python` 不存在，换成 `python3` 或 `py`。
+脚本是本技能根目录下的 `scripts/web.py`。以下命令都**以技能根目录为基准**书写，
+不依赖任何宿主的安装位置或专属环境变量：
+
+- 技能加载时上下文会给出根目录（形如 `Base directory for this skill: ...`）。
+  若当前工作目录不是技能根目录，把 `scripts/web.py` 换成该目录下的绝对路径。
+- 若 `python` 不存在，换成 `python3` 或 `py`。
 
 ### 1. 搜索
 
 ```bash
-python "${CLAUDE_PLUGIN_ROOT}/skills/web-research/scripts/web.py" search "查询词" -k 8
+python scripts/web.py search "查询词" -k 8
 ```
 
 常用参数：
@@ -56,7 +58,7 @@ python "${CLAUDE_PLUGIN_ROOT}/skills/web-research/scripts/web.py" search "查询
 ### 2. 抓取正文
 
 ```bash
-python "${CLAUDE_PLUGIN_ROOT}/skills/web-research/scripts/web.py" fetch "URL1" "URL2" "URL3" --max-chars 6000
+python scripts/web.py fetch "URL1" "URL2" "URL3" --max-chars 6000
 ```
 
 | 参数 | 说明 |
@@ -71,7 +73,7 @@ python "${CLAUDE_PLUGIN_ROOT}/skills/web-research/scripts/web.py" fetch "URL1" "
 ### 3. 自检
 
 ```bash
-python "${CLAUDE_PLUGIN_ROOT}/skills/web-research/scripts/web.py" doctor
+python scripts/web.py doctor
 ```
 
 输出 Python 版本、trafilatura 是否可用、SearXNG 是否连通且开启 JSON、DuckDuckGo 与 Bing 是否可达、后端回退链、缓存位置。

@@ -37,8 +37,10 @@ claude --plugin-dir ./agent-skills
 
 ### 方式三：只要单个技能
 
-把 `skills/web-research/` 整个目录复制到 `~/.claude/skills/web-research/` 即可。
-此时脚本里引用的 `${CLAUDE_PLUGIN_ROOT}` 不存在，请改用实际路径（`SKILL.md` 中已注明）。
+把 `skills/web-research/` 整个目录复制到任意宿主工具的技能目录即可
+（例如 Claude Code 的 `~/.claude/skills/`、Codex 的 `$CODEX_HOME/skills/`、
+Cursor 的 `~/.cursor/skills/`）。技能内部的文件一律用相对技能根目录的路径，
+复制后无需修改。
 
 ## 环境要求
 
@@ -109,7 +111,8 @@ Windows 上用 Git Bash 运行；或直接执行
 1. 建 `skills/<name>/SKILL.md`，frontmatter 必须含 `name` 与 `description`，
    且 `name` 等于目录名。
 2. `description` 写清**何时用**与**何时不用**——模型靠它决定是否调用。
-3. 脚本路径用 `${CLAUDE_PLUGIN_ROOT}/skills/<name>/...`，不要写死家目录。
+3. 技能内部文件一律用相对技能根目录的路径（如 `scripts/<name>.py`、
+   `references/...`），不要写入任何宿主专属路径或环境变量。
 4. 补测试，跑 `./tests/smoke.sh`。
 
 ### 发布新版本

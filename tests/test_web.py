@@ -191,15 +191,27 @@ class ManifestTests(unittest.TestCase):
                 self.assertIn("name:", head)
                 self.assertIn("description:", head)
 
-    def test_skill_md_paths_are_plugin_relative(self) -> None:
-        for skill_md in (REPO_ROOT / "skills").glob("*/SKILL.md"):
-            with self.subTest(skill=skill_md.parent.name):
-                text = skill_md.read_text(encoding="utf-8")
-                self.assertNotIn(
-                    "$HOME/.claude/skills/",
-                    text,
-                    "use ${CLAUDE_PLUGIN_ROOT} instead of a hard-coded home path",
-                )
+    def test_skill_docs_use_no_host_specific_paths(self) -> None:
+        """Skill files must be portable: they are copied into different hosts'
+        skill directories (Claude Code, Codex, Cursor, ...), so they may only
+        reference files relative to the skill root."""
+        forbidden = (
+            "CLAUDE_PLUGIN_ROOT",
+            "$HOME/.claude",
+            ".claude/skills",
+            "CODEX_HOME",
+            ".codex/skills",
+            ".cursor/skills",
+        )
+        for path in (REPO_ROOT / "skills").rglob("*.md"):
+            with self.subTest(file=str(path.relative_to(REPO_ROOT))):
+                text = path.read_text(encoding="utf-8")
+                for marker in forbidden:
+                    self.assertNotIn(
+                        marker,
+                        text,
+                        f"use paths relative to the skill root, not {marker}",
+                    )
 
 
 if __name__ == "__main__":
