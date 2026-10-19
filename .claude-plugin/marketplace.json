@@ -13,7 +13,7 @@
       "source": "./",
       "description": "Self-contained agent skills. Includes web-research: live web search (SearXNG / DuckDuckGo / Bing) and readable-content extraction, with stdlib only.",
       "category": "productivity",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "s-xmyq"
       },

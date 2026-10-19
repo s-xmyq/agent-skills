@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-19
+
 ### Changed
 
 - `web-research` docs now reference `scripts/web.py` relative to the skill root,
@@ -24,5 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `doctor` subcommand reports backend reachability, extraction quality, cache
   location, and the active proxy mode.
 
-[Unreleased]: https://github.com/s-xmyq/agent-skills/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/s-xmyq/agent-skills/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/s-xmyq/agent-skills/releases/tag/v0.1.1
 [0.1.0]: https://github.com/s-xmyq/agent-skills/releases/tag/v0.1.0

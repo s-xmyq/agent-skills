@@ -1,6 +1,6 @@
 {
   "name": "agent-skills",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A collection of self-contained agent skills for Claude Code: live web research, and more to come.",
   "author": {
     "name": "s-xmyq"
