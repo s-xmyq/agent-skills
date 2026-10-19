@@ -18,5 +18,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `doctor` subcommand reports backend reachability, extraction quality, cache
   location, and the active proxy mode.
 
-[Unreleased]: https://github.com/zx012375/claude-kit/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/zx012375/claude-kit/releases/tag/v0.1.0
+[Unreleased]: https://github.com/zx012375/agent-skills/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/zx012375/agent-skills/releases/tag/v0.1.0

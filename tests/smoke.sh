@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Smoke test for the claude-kit repository.
+# Smoke test for the agent-skills repository.
 #
 #   ./tests/smoke.sh            offline checks only (default)
-#   CLAUDE_KIT_NETWORK=1 ./tests/smoke.sh   also probe the live network
+#   AGENT_SKILLS_NETWORK=1 ./tests/smoke.sh   also probe the live network
 #
 # Exits non-zero on the first failure.
 
@@ -33,7 +33,7 @@ echo "== Unit tests (offline) =="
 echo "== Version consistency =="
 "$PYTHON_BIN" scripts/check_version.py || fail "version check"
 
-if [[ "${CLAUDE_KIT_NETWORK:-0}" == "1" ]]; then
+if [[ "${AGENT_SKILLS_NETWORK:-0}" == "1" ]]; then
     echo "== Live network probe =="
     WEB="$ROOT/skills/web-research/scripts/web.py"
     "$PYTHON_BIN" "$WEB" doctor | "$PYTHON_BIN" -c '

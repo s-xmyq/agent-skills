@@ -1,11 +1,13 @@
-# claude-kit
+# agent-skills
 
-A collection of self-contained [Claude Code](https://claude.com/claude-code) skills.
-Each skill is dependency-free where possible, tested in CI, and works offline
-until it actually needs the network.
+A collection of self-contained agent skills. Each skill is dependency-free where
+possible, tested in CI, and works offline until it actually needs the network.
 
-> 一个自包含的 Claude Code 技能集合。每个技能尽量零依赖、有 CI 覆盖，并且不会在你
+> 一个自包含的 agent 技能集合。每个技能尽量零依赖、有 CI 覆盖，并且不会在你
 > 不需要联网时偷偷联网。
+>
+> 当前以 Claude Code 插件格式分发（`.claude-plugin/`），技能本体是纯 Markdown
+> 加 Python 脚本，不依赖特定模型或厂商。
 
 ## 包含的技能
 
@@ -19,16 +21,16 @@ until it actually needs the network.
 
 ```bash
 claude plugin marketplace add <this-repo-url>
-claude plugin install claude-kit@claude-kit
+claude plugin install agent-skills@agent-skills
 ```
 
-安装后技能以 `claude-kit:web-research` 的形式出现在技能列表中。
+安装后技能以 `agent-skills:web-research` 的形式出现在技能列表中。
 
 ### 方式二：本地开发加载
 
 ```bash
-git clone <this-repo-url> claude-kit
-claude --plugin-dir ./claude-kit
+git clone <this-repo-url> agent-skills
+claude --plugin-dir ./agent-skills
 ```
 
 改动立即生效，不需要重新安装。适合在提交前验证。
@@ -96,7 +98,7 @@ tests/                     离线单元测试与冒烟测试
 
 ```bash
 ./tests/smoke.sh                       # 离线：编译 + 单测 + 版本一致性
-CLAUDE_KIT_NETWORK=1 ./tests/smoke.sh  # 额外探测真实网络
+AGENT_SKILLS_NETWORK=1 ./tests/smoke.sh  # 额外探测真实网络
 ```
 
 Windows 上用 Git Bash 运行；或直接执行

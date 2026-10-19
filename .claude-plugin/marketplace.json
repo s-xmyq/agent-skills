@@ -1,23 +1,23 @@
 {
-  "name": "claude-kit",
+  "name": "agent-skills",
   "owner": {
     "name": "zx012375"
   },
   "metadata": {
-    "description": "A collection of self-contained Claude Code skills.",
-    "homepage": "https://github.com/zx012375/claude-kit"
+    "description": "A collection of self-contained agent skills for Claude Code.",
+    "homepage": "https://github.com/zx012375/agent-skills"
   },
   "plugins": [
     {
-      "name": "claude-kit",
+      "name": "agent-skills",
       "source": "./",
-      "description": "Self-contained Claude Code skills. Includes web-research: live web search (SearXNG / DuckDuckGo / Bing) and readable-content extraction, with stdlib only.",
+      "description": "Self-contained agent skills. Includes web-research: live web search (SearXNG / DuckDuckGo / Bing) and readable-content extraction, with stdlib only.",
       "category": "productivity",
       "version": "0.1.0",
       "author": {
         "name": "zx012375"
       },
-      "homepage": "https://github.com/zx012375/claude-kit",
+      "homepage": "https://github.com/zx012375/agent-skills",
       "license": "MIT",
       "keywords": [
         "web-search",
