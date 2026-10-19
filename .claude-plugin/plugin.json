@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "description": "A collection of self-contained agent skills for Claude Code: live web research, and more to come.",
   "author": {
-    "name": "zx012375"
+    "name": "s-xmyq"
   },
-  "homepage": "https://github.com/zx012375/agent-skills",
-  "repository": "https://github.com/zx012375/agent-skills",
+  "homepage": "https://github.com/s-xmyq/agent-skills",
+  "repository": "https://github.com/s-xmyq/agent-skills",
   "license": "MIT",
   "keywords": [
     "agent-skills",

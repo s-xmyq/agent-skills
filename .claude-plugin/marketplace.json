@@ -1,11 +1,11 @@
 {
   "name": "agent-skills",
   "owner": {
-    "name": "zx012375"
+    "name": "s-xmyq"
   },
   "metadata": {
     "description": "A collection of self-contained agent skills for Claude Code.",
-    "homepage": "https://github.com/zx012375/agent-skills"
+    "homepage": "https://github.com/s-xmyq/agent-skills"
   },
   "plugins": [
     {
@@ -15,9 +15,9 @@
       "category": "productivity",
       "version": "0.1.0",
       "author": {
-        "name": "zx012375"
+        "name": "s-xmyq"
       },
-      "homepage": "https://github.com/zx012375/agent-skills",
+      "homepage": "https://github.com/s-xmyq/agent-skills",
       "license": "MIT",
       "keywords": [
         "web-search",
