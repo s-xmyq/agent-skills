@@ -59,7 +59,7 @@ docker run -d --name searxng --restart unless-stopped \
 ```
 
 Windows 上用 Docker Desktop 时，把 `-v "$(pwd)/searxng:/etc/searxng"` 换成绝对路径，例如
-`-v "D:/searxng:/etc/searxng"`。
+`-v "<你的目录>/searxng:/etc/searxng"`。
 
 ### settings.yml 关键配置
 
