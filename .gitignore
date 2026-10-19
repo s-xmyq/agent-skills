@@ -1,0 +1,22 @@
+# Local Claude Code state (does not match .claude-plugin/)
+.claude/
+settings.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and local scratch
+*.log
+tmp/
+out/

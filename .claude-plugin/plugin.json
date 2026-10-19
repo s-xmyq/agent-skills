@@ -1,0 +1,18 @@
+{
+  "name": "claude-kit",
+  "version": "0.1.0",
+  "description": "A collection of self-contained Claude Code skills: live web research, and more to come.",
+  "author": {
+    "name": "zx012375"
+  },
+  "homepage": "https://github.com/zx012375/claude-kit",
+  "repository": "https://github.com/zx012375/claude-kit",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "skills",
+    "web-search",
+    "web-scraping"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "claude-kit",
+  "owner": {
+    "name": "zx012375"
+  },
+  "metadata": {
+    "description": "A collection of self-contained Claude Code skills.",
+    "homepage": "https://github.com/zx012375/claude-kit"
+  },
+  "plugins": [
+    {
+      "name": "claude-kit",
+      "source": "./",
+      "description": "Self-contained Claude Code skills. Includes web-research: live web search (SearXNG / DuckDuckGo / Bing) and readable-content extraction, with stdlib only.",
+      "category": "productivity",
+      "version": "0.1.0",
+      "author": {
+        "name": "zx012375"
+      },
+      "homepage": "https://github.com/zx012375/claude-kit",
+      "license": "MIT",
+      "keywords": [
+        "web-search",
+        "web-scraping",
+        "research"
+      ]
+    }
+  ]
+}
