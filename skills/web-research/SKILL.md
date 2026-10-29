@@ -27,12 +27,14 @@ allowed-tools: Bash
 
 ## 命令
 
-脚本是本技能根目录下的 `scripts/web.py`。以下命令都**以技能根目录为基准**书写，
-不依赖任何宿主的安装位置或专属环境变量：
+脚本是本技能根目录下的 `scripts/web.py`。以下命令都**以技能根目录为基准**书写。
 
 - 技能加载时上下文会给出根目录（形如 `Base directory for this skill: ...`）。
   若当前工作目录不是技能根目录，把 `scripts/web.py` 换成该目录下的绝对路径。
 - 若 `python` 不存在，换成 `python3` 或 `py`。
+- 解释器优先级：`WEB_RESEARCH_PYTHON` → 技能目录 `.venv` → `python`/`python3`/`py`。
+  `web.py` 在缺少 trafilatura 时会自动切换到 `.venv`，所以通常直接运行
+  `python scripts/web.py ...` 即可。
 
 ### 1. 搜索
 
@@ -78,6 +80,20 @@ python scripts/web.py doctor
 
 输出 Python 版本、trafilatura 是否可用、SearXNG 是否连通且开启 JSON、DuckDuckGo 与 Bing 是否可达、后端回退链、缓存位置。
 **第一次用或报错时先跑它。**
+
+## 首次使用与可选增强
+
+技能零必需依赖，直接可用。若想启用更好的正文抽取（trafilatura）：
+
+1. 先跑 `python scripts/web.py doctor`。若 `checks.trafilatura.ok` 已是 `true`，跳过本节。
+2. 若为 `false` 且未设置 `WEB_RESEARCH_NO_SETUP=1`，运行 `python scripts/setup_env.py`。
+   它会在技能目录创建独立 `.venv`，只影响本技能，不污染系统 Python；优先用 `uv`
+   （可自动获取 Python 3.12），没有 `uv` 时回退到本机 Python 3.10+。首次约下载 100MB。
+3. 成功后重新跑 `doctor`，`trafilatura.ok` 应为 `true`。之后所有命令照常写
+   `python scripts/web.py ...`，脚本会自动使用 `.venv`。
+4. 安装失败或用户不想下载时，直接继续用内置抽取器，**不要因此阻塞任务**。
+
+`WEB_RESEARCH_PYTHON` 可指向已有解释器覆盖默认选择；`WEB_RESEARCH_NO_SETUP=1` 表示不要自动安装。
 
 ## 标准工作流
 
@@ -130,7 +146,7 @@ python scripts/web.py doctor
 
 | 升级项 | 作用 | 怎么开 |
 |---|---|---|
-| `trafilatura` | 正文抽取质量大幅提升 | `python -m pip install trafilatura` |
+| `trafilatura` | 正文抽取质量大幅提升 | `python scripts/setup_env.py`（技能内 `.venv`） |
 | 本地 SearXNG | 搜索覆盖更全、可自定义引擎、不受 DDG/Bing 限流影响 | 见 `references/setup.md` |
 
 `auto` 模式下先试 DuckDuckGo（被反爬返回 202 时）自动切换到 Bing，输出里的
@@ -143,7 +159,7 @@ SearXNG 就绪后设置环境变量即可自动启用：
 export SEARXNG_URL="http://127.0.0.1:8080"
 ```
 
-相关环境变量：`SEARXNG_URL`、`CLAUDE_WEB_BACKEND`、`CLAUDE_WEB_CACHE`、`CLAUDE_WEB_TTL`、`CLAUDE_WEB_SYSTEM_PROXY`。
+相关环境变量：`SEARXNG_URL`、`WEB_RESEARCH_PYTHON`、`WEB_RESEARCH_NO_SETUP`、`CLAUDE_WEB_BACKEND`、`CLAUDE_WEB_CACHE`、`CLAUDE_WEB_TTL`、`CLAUDE_WEB_SYSTEM_PROXY`。
 
 ### 代理与延迟
 

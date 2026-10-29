@@ -4,26 +4,29 @@
 
 ---
 
-## 一、trafilatura（推荐，1 分钟）
+## 一、trafilatura（推荐，首次使用一次）
 
 ```bash
-python -m pip install trafilatura
+python scripts/setup_env.py
 python scripts/web.py doctor
 ```
 
 （`scripts/web.py` 相对技能根目录；若当前不在该目录，用其绝对路径。）
 
-`doctor` 中 `checks.trafilatura.ok` 变为 `true` 即生效，无需改代码——脚本会自动优先使用它。
+脚本会在技能目录创建独立 `.venv`，把 trafilatura 和固定版本的依赖装进去，
+**不会修改系统 Python**。优先使用 `uv`（可自动获取 Python 3.12）；没有 `uv` 时
+回退到本机 Python 3.10+。首次约下载 100MB，之后 `web.py` 会自动使用该环境，
+命令仍然写成 `python scripts/web.py ...`。
+
+`doctor` 中 `checks.trafilatura.ok` 变为 `true` 即生效，无需改代码。
 
 **为什么值得装：** 内置的 fallback 抽取器只做块级文本收集和链接密度过滤，对博客/新闻正文够用，但对表格、列表、页面结构复杂的站点会带进导航噪声。trafilatura 采用多算法级联（自有算法 + readability + jusText）打分选优，并附带标题、作者、日期元数据。
 
-若安装失败（例如 Python 版本过新、lxml 无 wheel）：
-
-```bash
-python -m pip install --user trafilatura --only-binary=:all:
-```
-
-仍失败则保持现状即可，fallback 抽取器可用。
+安装失败时技能仍然可用（内置 fallback 抽取器）；用
+`python scripts/setup_env.py --check` 查看状态，或装好 `uv` 后重试。
+要移除增强环境，直接删除技能目录下的 `.venv`。若已有自己的环境，可设
+`WEB_RESEARCH_PYTHON` 指向其解释器；设置 `WEB_RESEARCH_NO_SETUP=1` 可禁止
+首次自动安装。
 
 ---
 
@@ -156,6 +159,8 @@ python -m searx.webapp
 | 变量 | 默认 | 说明 |
 |---|---|---|
 | `SEARXNG_URL` | 空 | 设置后优先使用 SearXNG 后端 |
+| `WEB_RESEARCH_PYTHON` | 空 | 覆盖解释器选择，指向已有 Python 环境 |
+| `WEB_RESEARCH_NO_SETUP` | 空 | 设为 `1` 时不在首次使用时自动创建增强环境 |
 | `CLAUDE_WEB_BACKEND` | `auto` | `auto` / `searxng` / `ddg` / `bing`（`auto` = 先 DDG，失败切 Bing） |
 | `CLAUDE_WEB_CACHE` | 系统缓存目录 | 缓存目录覆盖 |
 | `CLAUDE_WEB_TTL` | 搜索 600s，抓取 3600s | 缓存有效期（秒） |

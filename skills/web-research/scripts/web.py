@@ -35,6 +35,8 @@ import json
 import os
 import re
 import socket
+import ssl
+import subprocess
 import sys
 import time
 import urllib.error
@@ -207,6 +209,26 @@ class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
+def _ssl_context() -> ssl.SSLContext | None:
+    """Default TLS context, augmented with certifi roots when available.
+
+    Some machines (and some standalone Python builds) have a trust store
+    that is missing newer public roots. Loading certifi on top keeps the
+    OS/corporate roots working while adding the public ones.
+    """
+    try:
+        context = ssl.create_default_context()
+    except Exception:  # noqa: BLE001
+        return None
+    try:
+        import certifi  # type: ignore
+
+        context.load_verify_locations(certifi.where())
+    except Exception:  # noqa: BLE001
+        pass
+    return context
+
+
 def http_get(
     url: str,
     timeout: float = 20,
@@ -217,10 +239,14 @@ def http_get(
     if not allow_private and not is_public_url(url):
         raise ValueError(f"refusing to fetch non-public URL: {url}")
 
-    opener = urllib.request.build_opener(
+    handlers: list[urllib.request.BaseHandler] = [
         _proxy_handler(),
         _SafeRedirectHandler(allow_private=allow_private),
-    )
+    ]
+    context = _ssl_context()
+    if context is not None:
+        handlers.append(urllib.request.HTTPSHandler(context=context))
+    opener = urllib.request.build_opener(*handlers)
     req = urllib.request.Request(url, headers={**DEFAULT_HEADERS, **(headers or {})})
     try:
         with opener.open(req, timeout=timeout) as resp:
@@ -991,7 +1017,8 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     }
     if trafilatura is None:
         report["hints"].append(
-            f'"{sys.executable}" -m pip install trafilatura   (optional, recommended)'
+            "run `python scripts/setup_env.py` to install trafilatura into the "
+            "skill-local .venv (optional, recommended)"
         )
 
     # SearXNG env
@@ -1053,6 +1080,57 @@ def cmd_doctor(args: argparse.Namespace) -> int:
 
 
 # --------------------------------------------------------------------------- #
+# skill-local environment
+# --------------------------------------------------------------------------- #
+
+
+def _skill_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+def _venv_python() -> Path:
+    if os.name == "nt":
+        return _skill_root() / ".venv" / "Scripts" / "python.exe"
+    return _skill_root() / ".venv" / "bin" / "python"
+
+
+def _maybe_reexec_with_venv() -> None:
+    """Run this script with the skill-local interpreter when it adds value.
+
+    Optional dependencies (trafilatura) live in the skill's .venv, not in
+    the host Python. Re-exec keeps the documented ``python scripts/web.py``
+    invocation working without making the caller choose an interpreter.
+    ``WEB_RESEARCH_PYTHON`` overrides the venv path; a marker prevents loops.
+    """
+    if trafilatura is not None or os.environ.get("WEB_RESEARCH_REEXEC") == "1":
+        return
+    candidates: list[Path] = []
+    override = os.environ.get("WEB_RESEARCH_PYTHON")
+    if override:
+        candidates.append(Path(override).expanduser())
+    candidates.append(_venv_python())
+    try:
+        current = Path(sys.executable).resolve()
+    except OSError:
+        current = Path(sys.executable)
+    for candidate in candidates:
+        try:
+            if not candidate.exists() or candidate.resolve() == current:
+                continue
+        except OSError:
+            continue
+        env = dict(os.environ, WEB_RESEARCH_REEXEC="1")
+        try:
+            result = subprocess.run(
+                [str(candidate), str(Path(__file__).resolve()), *sys.argv[1:]],
+                env=env,
+            )
+        except OSError:
+            continue
+        raise SystemExit(result.returncode)
+
+
+# --------------------------------------------------------------------------- #
 # entry point
 # --------------------------------------------------------------------------- #
 
@@ -1092,6 +1170,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _maybe_reexec_with_venv()
     args = build_parser().parse_args(argv)
     try:
         return int(args.func(args))
