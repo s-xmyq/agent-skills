@@ -11,9 +11,9 @@
     {
       "name": "agent-skills",
       "source": "./",
-      "description": "Self-contained agent skills. Includes web-research: live web search (SearXNG / DuckDuckGo / Bing) and readable-content extraction, with stdlib only.",
+      "description": "Self-contained agent skills. Includes web-research (live web search and readable-content extraction) and video-download (watermark-free Douyin video download), with stdlib only.",
       "category": "productivity",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "author": {
         "name": "s-xmyq"
       },
@@ -22,7 +22,9 @@
       "keywords": [
         "web-search",
         "web-scraping",
-        "research"
+        "research",
+        "video-download",
+        "douyin"
       ]
     }
   ]

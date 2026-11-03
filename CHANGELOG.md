@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-04
+
+### Added
+
+- `video-download` skill: resolve Douyin share links, download the highest-quality
+  watermark-free video, optionally extract frames for manual watermark checks, and
+  emit JSON. Standard library only; `--frame` optionally uses OpenCV.
+
+### Fixed
+
+- The Douyin parser no longer calls the same endpoint twice when the original and
+  canonical video URLs are identical.
+
 ## [0.1.1] - 2026-10-19
 
 ### Changed
@@ -26,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `doctor` subcommand reports backend reachability, extraction quality, cache
   location, and the active proxy mode.
 
-[Unreleased]: https://github.com/s-xmyq/agent-skills/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/s-xmyq/agent-skills/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/s-xmyq/agent-skills/releases/tag/v0.2.0
 [0.1.1]: https://github.com/s-xmyq/agent-skills/releases/tag/v0.1.1
 [0.1.0]: https://github.com/s-xmyq/agent-skills/releases/tag/v0.1.0

@@ -1,7 +1,7 @@
 {
   "name": "agent-skills",
-  "version": "0.1.1",
-  "description": "A collection of self-contained agent skills for Claude Code: live web research, and more to come.",
+  "version": "0.2.0",
+  "description": "A collection of self-contained agent skills for Claude Code: live web research, watermark-free Douyin video download, and more to come.",
   "author": {
     "name": "s-xmyq"
   },
@@ -14,6 +14,8 @@
     "claude-code-plugin",
     "skills",
     "web-search",
-    "web-scraping"
+    "web-scraping",
+    "video-download",
+    "douyin"
   ]
 }

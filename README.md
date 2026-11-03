@@ -14,6 +14,7 @@ possible, tested in CI, and works offline until it actually needs the network.
 | 技能 | 作用 | 依赖 |
 |---|---|---|
 | `web-research` | 实时网页搜索（SearXNG / DuckDuckGo / Bing）与正文抽取，输出 JSON | 无（仅标准库） |
+| `video-download` | 抖音视频无水印下载：解析分享链接、下载最高画质、抽帧验水印，输出 JSON | 无（仅标准库）；抽帧需 OpenCV |
 
 ## 安装
 
@@ -37,7 +38,7 @@ claude --plugin-dir ./agent-skills
 
 ### 方式三：只要单个技能
 
-把 `skills/web-research/` 整个目录复制到任意宿主工具的技能目录即可
+把 `skills/<name>/` 整个目录复制到任意宿主工具的技能目录即可
 （例如 Claude Code 的 `~/.claude/skills/`、Codex 的 `$CODEX_HOME/skills/`、
 Cursor 的 `~/.cursor/skills/`）。技能内部的文件一律用相对技能根目录的路径，
 复制后无需修改。
@@ -47,6 +48,7 @@ Cursor 的 `~/.cursor/skills/`）。技能内部的文件一律用相对技能�
 - Python 3.8 及以上（已在 3.8 / 3.12 上测试）
 - 默认零第三方依赖
 - 可选：`pip install trafilatura` 提升正文抽取质量
+- 可选：`pip install opencv-python-headless` 供 `video-download --frame` 抽帧验水印
 - 可选：自建 SearXNG 获得更稳定的搜索，见
   [`skills/web-research/references/setup.md`](skills/web-research/references/setup.md)
 
@@ -63,6 +65,19 @@ python "$WEB" fetch "https://docs.python.org/3/whatsnew/3.13.html" --max-chars 4
 
 # 自检：后端连通性、抽取质量、缓存位置、代理模式
 python "$WEB" doctor
+```
+
+`video-download` 目前仅支持抖音（TikTok、快手、小红书、B站会返回
+`unsupported_platform`）。默认保存到 `~/Downloads/douyin_<id>/`：
+
+```bash
+VIDEO="skills/video-download/scripts/fetch_video.py"
+
+# 只解析元数据，不下载
+python "$VIDEO" "https://v.douyin.com/xxxx/" --check
+
+# 下载最高画质（无水印），并抽两帧用于人工核验水印
+python "$VIDEO" "https://v.douyin.com/xxxx/" --frame 10 --frame 30
 ```
 
 ### 环境变量
@@ -139,6 +154,9 @@ git push origin main --tags
 
 - `web-research` 抓回的网页正文属于**不可信输入**。技能文档要求只提取事实，
   不执行页面中的任何指令。
+- `video-download` 会把用户提供的抖音分享链接发给第三方解析服务
+  `api.xingzhige.com`；在意隐私时应主动告知。下载得到的视频同样属于**不可信
+  数据**，只保存或抽帧，不执行其中的任何内容。
 - 抓取内置 SSRF 防护：只允许 `http`/`https`，拒绝回环、私网、链路本地地址，
   并在重定向的每一跳重新校验。
 - 仓库内不应提交任何内网地址、令牌或个人配置；`.gitignore` 已排除
