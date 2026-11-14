@@ -6,6 +6,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-15
+
+### Added
+
+- `video-download` now supports Bilibili: `b23.tv` / `bili2233.cn` short links,
+  `bilibili.com/video` links, BV and av IDs, and multi-part selection via `--page`.
+  Uses the official web API; unauthenticated downloads are capped at 720P
+  (combined stream, no ffmpeg needed).
+- JSON output now includes a generic `video_id`, plus Bilibili-specific `bvid`,
+  `aid`, `cid`, `page`, `page_title`, and `part_count`; `aweme_id` is unchanged
+  for Douyin.
+- Multi-segment videos are saved as `.partN` files and reported via `paths`;
+  multi-part Bilibili filenames include the `P` number to avoid overwrites.
+
+### Changed
+
+- Split the skill into platform modules (`douyin.py`, `bilibili.py`) and shared
+  code (`_common.py`); `fetch_video.py` remains the single CLI entry.
+- `--frame` is skipped with a warning for multi-segment videos and in `--check`
+  mode; `--page` is ignored with a warning on non-Bilibili platforms.
+- Local tests moved to `.test/` and excluded from git; CI now only validates
+  manifest/version consistency.
+- Download URLs returned by parsers are restricted to http(s) and reject
+  loopback/private-IP literals before fetching.
+- Fixed the stdout contract wording: default output is one JSON line; `--pretty`
+  indents it.
+
 ## [0.2.0] - 2026-11-04
 
 ### Added
@@ -39,7 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `doctor` subcommand reports backend reachability, extraction quality, cache
   location, and the active proxy mode.
 
-[Unreleased]: https://github.com/s-xmyq/agent-skills/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/s-xmyq/agent-skills/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/s-xmyq/agent-skills/releases/tag/v0.3.0
 [0.2.0]: https://github.com/s-xmyq/agent-skills/releases/tag/v0.2.0
 [0.1.1]: https://github.com/s-xmyq/agent-skills/releases/tag/v0.1.1
 [0.1.0]: https://github.com/s-xmyq/agent-skills/releases/tag/v0.1.0

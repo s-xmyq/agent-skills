@@ -11,9 +11,9 @@
     {
       "name": "agent-skills",
       "source": "./",
-      "description": "Self-contained agent skills. Includes web-research (live web search and readable-content extraction) and video-download (watermark-free Douyin video download), with stdlib only.",
+      "description": "Self-contained agent skills. Includes web-research (live web search and readable-content extraction) and video-download (watermark-free Douyin download plus Bilibili 720P download), with stdlib only.",
       "category": "productivity",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "author": {
         "name": "s-xmyq"
       },
@@ -24,7 +24,8 @@
         "web-scraping",
         "research",
         "video-download",
-        "douyin"
+        "douyin",
+        "bilibili"
       ]
     }
   ]

@@ -1,7 +1,7 @@
 {
   "name": "agent-skills",
-  "version": "0.2.0",
-  "description": "A collection of self-contained agent skills for Claude Code: live web research, watermark-free Douyin video download, and more to come.",
+  "version": "0.3.0",
+  "description": "A collection of self-contained agent skills for Claude Code: live web research, watermark-free Douyin video download, Bilibili video download, and more to come.",
   "author": {
     "name": "s-xmyq"
   },
@@ -16,6 +16,7 @@
     "web-search",
     "web-scraping",
     "video-download",
-    "douyin"
+    "douyin",
+    "bilibili"
   ]
 }

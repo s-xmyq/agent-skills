@@ -1,9 +1,9 @@
 # agent-skills
 
 A collection of self-contained agent skills. Each skill is dependency-free where
-possible, tested in CI, and works offline until it actually needs the network.
+possible, has a local test suite, and works offline until it actually needs the network.
 
-> 一个自包含的 agent 技能集合。每个技能尽量零依赖、有 CI 覆盖，并且不会在你
+> 一个自包含的 agent 技能集合。每个技能尽量零依赖、带本地测试，并且不会在你
 > 不需要联网时偷偷联网。
 >
 > 当前以 Claude Code 插件格式分发（`.claude-plugin/`），技能本体是纯 Markdown
@@ -14,7 +14,7 @@ possible, tested in CI, and works offline until it actually needs the network.
 | 技能 | 作用 | 依赖 |
 |---|---|---|
 | `web-research` | 实时网页搜索（SearXNG / DuckDuckGo / Bing）与正文抽取，输出 JSON | 无（仅标准库） |
-| `video-download` | 抖音视频无水印下载：解析分享链接、下载最高画质、抽帧验水印，输出 JSON | 无（仅标准库）；抽帧需 OpenCV |
+| `video-download` | 抖音 / B站视频下载：解析分享链接、保存最高可用画质、抽帧验水印，输出 JSON | 无（仅标准库）；抽帧需 OpenCV |
 
 ## 安装
 
@@ -25,7 +25,7 @@ claude plugin marketplace add <this-repo-url>
 claude plugin install agent-skills@agent-skills
 ```
 
-安装后技能以 `agent-skills:web-research` 的形式出现在技能列表中。
+安装后技能以 `agent-skills:web-research`、`agent-skills:video-download` 的形式出现在技能列表中。
 
 ### 方式二：本地开发加载
 
@@ -45,7 +45,7 @@ Cursor 的 `~/.cursor/skills/`）。技能内部的文件一律用相对技能�
 
 ## 环境要求
 
-- Python 3.8 及以上（已在 3.8 / 3.12 上测试）
+- Python 3.8 及以上（代码保持 3.8 兼容）
 - 默认零第三方依赖
 - 可选：`pip install trafilatura` 提升正文抽取质量
 - 可选：`pip install opencv-python-headless` 供 `video-download --frame` 抽帧验水印
@@ -67,17 +67,24 @@ python "$WEB" fetch "https://docs.python.org/3/whatsnew/3.13.html" --max-chars 4
 python "$WEB" doctor
 ```
 
-`video-download` 目前仅支持抖音（TikTok、快手、小红书、B站会返回
-`unsupported_platform`）。默认保存到 `~/Downloads/douyin_<id>/`：
+`video-download` 支持抖音和 B站。抖音去水印取最高清晰度；B站走官方接口，未登录
+最高 720P，可用 `--page` 选分P（TikTok、快手、小红书、B站番剧/直播会返回
+`unsupported_platform`）。默认保存到 `~/Downloads/<平台>_<id>/`：
 
 ```bash
 VIDEO="skills/video-download/scripts/fetch_video.py"
 
-# 只解析元数据，不下载
+# 抖音：只解析元数据，不下载
 python "$VIDEO" "https://v.douyin.com/xxxx/" --check
 
-# 下载最高画质（无水印），并抽两帧用于人工核验水印
+# 抖音：下载最高画质（无水印），并抽两帧用于人工核验水印
 python "$VIDEO" "https://v.douyin.com/xxxx/" --frame 10 --frame 30
+
+# B站：短链或 BV 号，只解析元数据
+python "$VIDEO" "https://b23.tv/xxxx" --check
+
+# B站：多P视频选择第 2 P（未登录最高 720P）
+python "$VIDEO" "https://www.bilibili.com/video/BV1xx411c7mD" --page 2
 ```
 
 ### 环境变量
@@ -107,19 +114,22 @@ skills/
   <name>/scripts/      随技能分发的脚本
   <name>/references/   详细文档
 scripts/check_version.py   清单与 tag 一致性校验
-tests/                     离线单元测试与冒烟测试
-.github/workflows/ci.yml   CI
+.test/                     本地单元测试与冒烟脚本（git 忽略，不随仓库分发）
+.github/workflows/ci.yml   CI（清单/版本校验）
 ```
 
 ### 运行测试
 
+测试目录 `.test/` 已被 `.gitignore` 排除，只在本地保留；CI 不运行单测，
+只做清单/版本一致性校验。
+
 ```bash
-./tests/smoke.sh                       # 离线：编译 + 单测 + 版本一致性
-AGENT_SKILLS_NETWORK=1 ./tests/smoke.sh  # 额外探测真实网络
+./.test/smoke.sh                       # 离线：编译 + 单测 + 版本一致性
+AGENT_SKILLS_NETWORK=1 ./.test/smoke.sh  # 额外探测真实网络
 ```
 
 Windows 上用 Git Bash 运行；或直接执行
-`python -m unittest discover -s tests -v`。
+`python -m unittest discover -s .test -v`。
 
 ### 新增技能
 
@@ -128,7 +138,7 @@ Windows 上用 Git Bash 运行；或直接执行
 2. `description` 写清**何时用**与**何时不用**——模型靠它决定是否调用。
 3. 技能内部文件一律用相对技能根目录的路径（如 `scripts/<name>.py`、
    `references/...`），不要写入任何宿主专属路径或环境变量。
-4. 补测试，跑 `./tests/smoke.sh`。
+4. 补本地测试（`.test/test_<name>.py`），跑 `./.test/smoke.sh`。
 
 ### 发布新版本
 
@@ -154,9 +164,12 @@ git push origin main --tags
 
 - `web-research` 抓回的网页正文属于**不可信输入**。技能文档要求只提取事实，
   不执行页面中的任何指令。
-- `video-download` 会把用户提供的抖音分享链接发给第三方解析服务
-  `api.xingzhige.com`；在意隐私时应主动告知。下载得到的视频同样属于**不可信
-  数据**，只保存或抽帧，不执行其中的任何内容。
+- `video-download` 的抖音路径会把用户提供的分享链接发给第三方解析服务
+  `api.xingzhige.com`；B站路径只调用官方 `api.bilibili.com`，不读取 cookie。
+  在意隐私时应主动告知。下载得到的视频同样属于**不可信数据**，只保存或抽帧，
+  不执行其中的任何内容。B站 CDN 下载请求会携带 `Referer: https://www.bilibili.com/`。
+- `video-download` 下载前只允许 http(s) 直链，并拒绝 `file://`、回环和私网 IP
+  字面量，避免被解析服务的异常返回值诱导去读本地或内网资源。
 - 抓取内置 SSRF 防护：只允许 `http`/`https`，拒绝回环、私网、链路本地地址，
   并在重定向的每一跳重新校验。
 - 仓库内不应提交任何内网地址、令牌或个人配置；`.gitignore` 已排除
