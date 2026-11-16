@@ -50,7 +50,7 @@ python scripts/web.py search "查询词" -k 8
 | `--lang zh-CN` | 结果语言，默认 `zh-CN` |
 | `--time-range day\|week\|month\|year` | 只要近期结果（Bing 后端忽略此参数） |
 | `--categories news` | SearXNG 分类（`general`/`news`/`it`/`science`） |
-| `--backend auto\|searxng\|ddg\|bing` | 强制后端，默认 `auto`（先 DDG，失败自动切 Bing） |
+| `--backend auto\|searxng\|ddg\|bing` | 强制后端，默认 `auto`（先 DDG，失败自动切 Bing）；显式选 `searxng` 时必须配置 `SEARXNG_URL` 或 `--searxng`，否则直接报错 |
 | `--no-cache` | 跳过缓存（默认缓存 10 分钟） |
 
 查询词写**具体的实体 + 限定词**，不要写长句：

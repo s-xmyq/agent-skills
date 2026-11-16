@@ -26,11 +26,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the new exit code.
 - `web-research` SKILL.md now has the standard dependency table and points at
   `doctor` for self-checks.
+- `tests/smoke.sh` now also runs `scripts/check_version.py`, so manifest and
+  version consistency are covered by the smoke test.
 
 ### Fixed
 
 - `web-research`'s fallback HTML extractor cleared the block tag before storing
   it, so headings, list items, and code blocks lost their Markdown formatting.
+- `web-research`: an explicitly selected SearXNG backend with no configured URL
+  now fails with a clear error instead of silently querying DuckDuckGo while
+  reporting `backend: searxng`.
+- `video-download`: parser-supplied download URLs are now resolved and rejected
+  when any address is private, loopback, or link-local, and every redirect hop is
+  re-validated. Rejected redirects also clean up their temporary `.part` file.
 
 ## [0.3.0] - 2026-11-15
 

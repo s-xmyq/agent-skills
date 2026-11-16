@@ -1,8 +1,13 @@
 """Offline unit tests for web-research's URL guard and fallback extractor."""
 
+import argparse
+import contextlib
+import io
+import json
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SKILL_SCRIPTS = (
     Path(__file__).resolve().parents[1]
@@ -13,6 +18,29 @@ SKILL_SCRIPTS = (
 sys.path.insert(0, str(SKILL_SCRIPTS))
 
 import web  # noqa: E402
+
+
+def search_args(**overrides):
+    values = {
+        "backend": "auto",
+        "searxng": None,
+        "query": "query",
+        "num": 1,
+        "lang": "zh-CN",
+        "categories": "general",
+        "time_range": None,
+        "no_cache": True,
+        "timeout": 5,
+    }
+    values.update(overrides)
+    return argparse.Namespace(**values)
+
+
+def run_search(args):
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        code = web.cmd_search(args)
+    return code, json.loads(buf.getvalue())
 
 
 class UrlSafetyTests(unittest.TestCase):
@@ -76,6 +104,56 @@ class SimpleExtractorTests(unittest.TestCase):
         self.assertIn("# 大标题", content)
         self.assertIn("这是一段正文内容", content)
         self.assertNotIn("页脚不应出现", content)
+
+
+class SearchBackendTests(unittest.TestCase):
+    def test_explicit_searxng_without_url_fails_loudly(self):
+        with mock.patch.object(web, "ddg_search") as ddg, mock.patch.object(
+            web, "bing_search"
+        ) as bing:
+            code, payload = run_search(search_args(backend="searxng"))
+
+        self.assertEqual(code, 1)
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["backend"], "searxng")
+        self.assertIn("SEARXNG_URL", payload["error"])
+        ddg.assert_not_called()
+        bing.assert_not_called()
+
+    def test_env_selected_searxng_without_url_also_fails(self):
+        with mock.patch.dict(
+            "os.environ", {"CLAUDE_WEB_BACKEND": "searxng"}
+        ), mock.patch.object(web, "ddg_search") as ddg:
+            code, payload = run_search(search_args(backend="auto"))
+
+        self.assertEqual(code, 1)
+        self.assertIn("SEARXNG_URL", payload["error"])
+        ddg.assert_not_called()
+
+    def test_explicit_searxng_uses_configured_url(self):
+        fake = [
+            {
+                "title": "t",
+                "url": "https://example.com",
+                "snippet": "",
+                "engine": "searxng",
+                "score": None,
+                "published": None,
+            }
+        ]
+        with mock.patch.object(
+            web, "searxng_search", return_value=fake
+        ) as searxng, mock.patch.object(web, "ddg_search") as ddg:
+            code, payload = run_search(
+                search_args(backend="searxng", searxng="http://127.0.0.1:8080")
+            )
+
+        self.assertEqual(code, 0)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["backend"], "searxng")
+        searxng.assert_called_once()
+        self.assertEqual(searxng.call_args.args[0], "http://127.0.0.1:8080")
+        ddg.assert_not_called()
 
 
 if __name__ == "__main__":

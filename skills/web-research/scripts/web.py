@@ -878,7 +878,12 @@ def cmd_search(args: argparse.Namespace) -> int:
     errors: list[str] = []
     for backend, searxng_url in chain:
         try:
-            if backend == "searxng" and searxng_url:
+            if backend == "searxng":
+                if not searxng_url:
+                    raise BackendError(
+                        "SearXNG backend selected but no URL configured; "
+                        "set SEARXNG_URL or pass --searxng URL"
+                    )
                 results = searxng_search(searxng_url, args.query, args.num, args.lang,
                                          args.categories, args.time_range, args.timeout)
             elif backend == "bing":

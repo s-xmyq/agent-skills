@@ -25,6 +25,7 @@ from __future__ import annotations
 import ipaddress
 import json
 import re
+import socket
 import sys
 import urllib.error
 import urllib.parse
@@ -159,8 +160,48 @@ def resolve_redirect(
         ) from exc
 
 
+def _reject_private(host: str, detail: str | None = None) -> None:
+    target = f"{host} -> {detail}" if detail else host
+    raise SkillError(
+        "download_failed",
+        f"拒绝内网下载地址：{target}",
+        "解析服务返回了内网地址，已中止下载。",
+    )
+
+
+def _resolved_addresses(host: str) -> list:
+    """解析域名到全部 IP；任何一步失败都按下载失败处理。"""
+    try:
+        infos = socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)
+    except (OSError, UnicodeError) as exc:
+        raise SkillError(
+            "download_failed",
+            f"无法解析下载地址的域名：{host}",
+            "检查网络或 DNS 设置；解析服务返回的直链可能已失效。",
+        ) from exc
+
+    addresses = []
+    for info in infos:
+        raw = str(info[4][0]).split("%", 1)[0]
+        try:
+            addresses.append(ipaddress.ip_address(raw))
+        except ValueError as exc:
+            raise SkillError(
+                "download_failed",
+                f"下载地址解析出无法识别的 IP：{info[4][0]}",
+                "解析服务返回了异常地址，已中止下载。",
+            ) from exc
+    if not addresses:
+        raise SkillError(
+            "download_failed",
+            f"下载地址无法解析到任何 IP：{host}",
+            "检查网络或 DNS 设置；解析服务返回的直链可能已失效。",
+        )
+    return addresses
+
+
 def validate_download_url(url: str) -> None:
-    """解析服务返回的地址不可信：只允许公网 http(s)。"""
+    """解析服务返回的地址不可信：只允许解析到公网地址的 http(s)。"""
     try:
         parsed = urllib.parse.urlparse(url)
     except ValueError as exc:
@@ -177,21 +218,29 @@ def validate_download_url(url: str) -> None:
         )
     host = parsed.hostname.strip("[]").lower()
     if host == "localhost" or host.endswith(".local") or host.endswith(".internal"):
-        raise SkillError(
-            "download_failed",
-            f"拒绝内网下载地址：{host}",
-            "解析服务返回了内网地址，已中止下载。",
-        )
+        _reject_private(host)
     try:
         ip = ipaddress.ip_address(host)
     except ValueError:
+        pass
+    else:
+        if not ip.is_global:
+            _reject_private(host, str(ip))
         return
-    if not ip.is_global:
-        raise SkillError(
-            "download_failed",
-            f"拒绝内网下载地址：{host}",
-            "解析服务返回了内网地址，已中止下载。",
-        )
+
+    # 主机名同样不可信：必须解析并确认所有地址都是公网地址，
+    # 否则 http://<公网域名解析到 127.0.0.1> 这类地址会绕过字面量检查。
+    for address in _resolved_addresses(host):
+        if not address.is_global:
+            _reject_private(host, str(address))
+
+
+class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """下载时跟随重定向，但每一跳都重新执行同一套地址校验。"""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        validate_download_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 def download(
@@ -210,9 +259,10 @@ def download(
     req_headers = {"User-Agent": UA_DESKTOP}
     req_headers.update(headers or {})
     req = urllib.request.Request(url, headers=req_headers)
+    opener = urllib.request.build_opener(_SafeRedirectHandler())
     written = 0
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with opener.open(req, timeout=timeout) as resp:
             expected = as_int(resp.headers.get("Content-Length")) or 0
             with open(tmp, "wb") as fh:
                 while True:
@@ -238,6 +288,7 @@ def download(
                             flush=True,
                         )
     except SkillError:
+        tmp.unlink(missing_ok=True)
         raise
     except Exception as exc:
         tmp.unlink(missing_ok=True)
