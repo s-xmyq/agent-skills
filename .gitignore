@@ -16,9 +16,6 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Local tests (kept out of the repository)
-.test/
-
 # Logs and local scratch
 *.log
 tmp/

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check that plugin.json, marketplace.json and the git tag agree.
 
-Used by CI and by .test/smoke.sh. Exits 1 with a readable message on mismatch.
+Used by CI and by tests/smoke.sh. Exits 1 with a readable message on mismatch.
 
     python scripts/check_version.py                 # manifest consistency only
     python scripts/check_version.py v0.1.0          # also require tag == version

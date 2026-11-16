@@ -26,6 +26,23 @@ allowed-tools: Bash, Read
 支持范围由各平台模块的 `DOMAINS`、`looks_like_id` 和入口的 `PLATFORMS` 表决定。
 新增平台见文末「维护」。
 
+## 依赖与自检
+
+| 依赖 | 级别 | 用途 | 缺失时 |
+|---|---|---|---|
+| Python ≥ 3.8 | 必需 | 运行全部脚本 | 提示升级并停止（退出码 `6`） |
+| `opencv-python-headless` | 可选 | `--frame` 抽帧验水印 | 询问是否安装；拒绝则跳过抽帧，视频照常下载，`warnings` 说明 |
+| `api.xingzhige.com` | 外部服务 | 抖音解析；分享链接会发送给该第三方 | 失败重试一次；仍失败则停止抖音操作（退出码 `3`），不要改用未声明的服务 |
+| `api.bilibili.com` | 外部服务 | B站解析；只发送 BV/av 号和 cid，不带 cookie | 失败重试一次；仍失败则停止 B站操作（退出码 `3`） |
+
+自检（第一次用、报错或换机器时先跑）：
+
+```bash
+python scripts/fetch_video.py --check-deps --pretty
+```
+
+`ok: true` 表示必需依赖已满足；`opencv-python-headless` 缺失不影响视频下载。
+
 ## 何时使用
 
 - 用户给抖音分享链接 / 分享口令，说"下载""保存""去水印""把视频下下来"
@@ -65,6 +82,7 @@ python scripts/fetch_video.py "https://b23.tv/xxxx" --page 2 --check
 | `--flat` | 直接存到 `--out`，不建 `<平台>_<id>` 子目录 |
 | `--page N` | B站分P序号，默认取链接里的 `p=` 或第 1 P；其它平台忽略并提示 |
 | `--check` | 只解析元数据，不下载 |
+| `--check-deps` | 只检查运行依赖与外部服务声明，输出 JSON，不解析视频 |
 | `--frame SEC` | 抽取该秒数的一帧存 JPG，用于人工查水印；可重复 |
 | `--timeout N` | 下载超时秒数，默认 300 |
 | `--pretty` | JSON 缩进输出 |
@@ -74,10 +92,13 @@ python scripts/fetch_video.py "https://b23.tv/xxxx" --page 2 --check
 > `--check` 与 `--frame` 同用时只解析元数据，并在 `warnings` 里说明已忽略抽帧。
 
 退出码：`0` 成功 · `1` 未预料错误 · `2` 平台不支持 / 无法识别 ·
-`3` 解析失败 · `4` 下载失败 · `5` 输入里没有链接 · `130` 用户中断。
+`3` 解析失败 · `4` 下载失败 · `5` 输入里没有链接 · `6` 缺少必需依赖 ·
+`130` 用户中断。
 
 ## 标准工作流
 
+0. **自检**（第一次使用、报错或换机器时）：`python scripts/fetch_video.py --check-deps --pretty`。
+   `ok: true` 才继续；`opencv-python-headless` 缺失只影响 `--frame`，先询问用户是否安装。
 1. **识别平台**：抖音域名或纯数字 aweme_id；B站域名、`BV`/`av` 号。
    其它平台直接回复"暂不支持"，不要调用脚本。
 2. **解析校验**（链接可能已失效，先探一下更省时间）：
@@ -143,7 +164,8 @@ B站成功：
 分享链接，不要拿同一条反复重试。
 
 **3. 解析来源要说清。** 抖音会把链接发给第三方服务 `api.xingzhige.com`；B站走官方
-`api.bilibili.com`，不读取 cookie、不登录。用户明确在意隐私时如实告知。
+`api.bilibili.com`，不读取 cookie、不登录。用户明确在意隐私时如实告知。服务失败时
+如实报错，不要自行改用其它未声明的第四方接口。
 
 **4. 落点要明确。** 回报绝对路径；Windows 下注意中文路径不要漏引号。
 
@@ -194,5 +216,5 @@ B站接口失效时：
 
 1. 新建 `scripts/<platform>.py`，实现上面的契约。
 2. 在 `fetch_video.py` 的 `PLATFORMS` 注册；未支持的平台把 `module` 设为 `None`。
-3. 补本地测试（`.test/test_<platform>.py` 和入口测试），跑 `./.test/smoke.sh`。
-   测试目录被 git 忽略，不会随技能分发。
+3. 补测试（`tests/test_<platform>.py` 和入口测试），跑 `python -m unittest discover -s tests -v`。
+   测试随仓库提交，离线用例默认运行，联网用例需 `AGENT_SKILLS_NETWORK=1`。

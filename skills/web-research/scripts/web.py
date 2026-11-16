@@ -357,6 +357,7 @@ class SimpleExtractor(HTMLParser):
     def _flush(self) -> None:
         text = re.sub(r"[ \t\r\f\v]+", " ", "".join(self._buf)).strip()
         text = re.sub(r"\n{3,}", "\n\n", text)
+        tag = self._buf_tag
         self._buf, self._buf_tag = [], ""
         if len(text) < 2:
             return
@@ -370,7 +371,7 @@ class SimpleExtractor(HTMLParser):
         self.blocks.append(
             {
                 "text": text,
-                "tag": self._buf_tag,
+                "tag": tag,
                 "main": self._buf_main,
                 "link_ratio": link_ratio,
             }

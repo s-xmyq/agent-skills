@@ -48,7 +48,8 @@ Cursor 的 `~/.cursor/skills/`）。技能内部的文件一律用相对技能�
 - Python 3.8 及以上（代码保持 3.8 兼容）
 - 默认零第三方依赖
 - 可选：`pip install trafilatura` 提升正文抽取质量
-- 可选：`pip install opencv-python-headless` 供 `video-download --frame` 抽帧验水印
+- 可选：`pip install -r skills/video-download/scripts/requirements-optional.txt`
+  供 `video-download --frame` 抽帧验水印
 - 可选：自建 SearXNG 获得更稳定的搜索，见
   [`skills/web-research/references/setup.md`](skills/web-research/references/setup.md)
 
@@ -73,6 +74,9 @@ python "$WEB" doctor
 
 ```bash
 VIDEO="skills/video-download/scripts/fetch_video.py"
+
+# 依赖自检（第一次用或换机器）
+python "$VIDEO" --check-deps --pretty
 
 # 抖音：只解析元数据，不下载
 python "$VIDEO" "https://v.douyin.com/xxxx/" --check
@@ -114,31 +118,39 @@ skills/
   <name>/scripts/      随技能分发的脚本
   <name>/references/   详细文档
 scripts/check_version.py   清单与 tag 一致性校验
-.test/                     本地单元测试与冒烟脚本（git 忽略，不随仓库分发）
-.github/workflows/ci.yml   CI（清单/版本校验）
+docs/skill-authoring.md    技能制作规范（依赖分级、自检、输出契约）
+tests/                     离线单测（随仓库分发，CI 运行）；网络用例默认跳过
+.github/workflows/ci.yml   CI（离线单测、清单/版本校验）
 ```
 
 ### 运行测试
 
-测试目录 `.test/` 已被 `.gitignore` 排除，只在本地保留；CI 不运行单测，
-只做清单/版本一致性校验。
+单元测试随仓库提交，CI 运行离线测试；联网用例默认跳过，设置
+`AGENT_SKILLS_NETWORK=1` 后才会真实访问网络。
 
 ```bash
-./.test/smoke.sh                       # 离线：编译 + 单测 + 版本一致性
-AGENT_SKILLS_NETWORK=1 ./.test/smoke.sh  # 额外探测真实网络
+bash tests/smoke.sh                                            # 编译 + 离线单测
+python -m unittest discover -s tests -v                        # 只跑离线单测
+AGENT_SKILLS_NETWORK=1 python -m unittest discover -s tests -v  # 含网络用例
 ```
 
-Windows 上用 Git Bash 运行；或直接执行
-`python -m unittest discover -s .test -v`。
+Windows 上用 Git Bash 或 PowerShell 均可；测试本身不依赖第三方包。
 
 ### 新增技能
+
+完整规范见 [`docs/skill-authoring.md`](docs/skill-authoring.md)。最低要求：
 
 1. 建 `skills/<name>/SKILL.md`，frontmatter 必须含 `name` 与 `description`，
    且 `name` 等于目录名。
 2. `description` 写清**何时用**与**何时不用**——模型靠它决定是否调用。
 3. 技能内部文件一律用相对技能根目录的路径（如 `scripts/<name>.py`、
    `references/...`），不要写入任何宿主专属路径或环境变量。
-4. 补本地测试（`.test/test_<name>.py`），跑 `./.test/smoke.sh`。
+4. 依赖必须分级声明：**必需**（缺了无法完成，用户拒绝则停止该操作）、
+   **可选**（缺了降级继续，用户拒绝不阻塞）、**外部服务**（披露数据流向）。
+   不得静默安装；有脚本或外部依赖时提供 `doctor` / `--check-deps`。
+5. 补测试（`tests/test_<name>.py`），跑 `python -m unittest discover -s tests -v`；
+   至少覆盖无依赖、缺必需依赖、有可选依赖三种情形。
+
 
 ### 发布新版本
 

@@ -81,6 +81,18 @@ python scripts/web.py doctor
 输出 Python 版本、trafilatura 是否可用、SearXNG 是否连通且开启 JSON、DuckDuckGo 与 Bing 是否可达、后端回退链、缓存位置。
 **第一次用或报错时先跑它。**
 
+## 依赖与自检
+
+| 依赖 | 级别 | 用途 | 缺失时 |
+|---|---|---|---|
+| Python ≥ 3.8 | 必需 | 运行全部脚本 | 提示升级并停止 |
+| `trafilatura` | 可选 | 正文抽取质量提升 | 询问是否安装；拒绝则用内置提取器，`quality` 可能下降 |
+| `uv` 或 Python ≥ 3.10 | 可选 | `setup_env.py` 创建技能内 `.venv` | 跳过安装，继续用内置提取器 |
+| DuckDuckGo / Bing | 外部服务 | 默认搜索后端 | 自动回退；全部失败则如实报错，不伪造结果 |
+| SearXNG | 可选外部服务 | 更稳定的搜索 | 未配置时跳过，不影响默认后端 |
+
+自检：`python scripts/web.py doctor`（第一次用或报错时先跑）。
+
 ## 首次使用与可选增强
 
 技能零必需依赖，直接可用。若想启用更好的正文抽取（trafilatura）：

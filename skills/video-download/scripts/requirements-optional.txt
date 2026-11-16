@@ -1,0 +1,5 @@
+# Optional enhancement for video-download. The skill itself is stdlib-only.
+# Only --frame (extract a still to check for a watermark) needs OpenCV.
+# Install with the interpreter that runs fetch_video.py:
+#   pip install -r skills/video-download/scripts/requirements-optional.txt
+opencv-python-headless>=4.5

@@ -6,6 +6,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `docs/skill-authoring.md`: repository-wide skill authoring standard covering
+  self-containment, dependency tiers (required / optional / external service),
+  consent before installation, `doctor` output, exit codes, and test requirements.
+- `video-download --check-deps`: read-only JSON report of Python/OpenCV
+  availability and declared external services. Missing required dependencies now
+  exit with code `6`.
+- `skills/video-download/scripts/requirements-optional.txt` for the optional
+  OpenCV frame extraction.
+
+### Changed
+
+- Tests are now version-controlled under `tests/` instead of the gitignored
+  `.test/`; CI runs the offline suite on Python 3.8 and 3.12. Network tests are
+  opt-in via `AGENT_SKILLS_NETWORK=1`.
+- `video-download` SKILL.md documents its dependencies, degraded behavior, and
+  the new exit code.
+- `web-research` SKILL.md now has the standard dependency table and points at
+  `doctor` for self-checks.
+
+### Fixed
+
+- `web-research`'s fallback HTML extractor cleared the block tag before storing
+  it, so headings, list items, and code blocks lost their Markdown formatting.
+
 ## [0.3.0] - 2026-11-15
 
 ### Added

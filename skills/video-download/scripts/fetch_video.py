@@ -68,7 +68,71 @@ EXIT_CODES = {
     "resolve_failed": 3,
     "parse_failed": 3,
     "download_failed": 4,
+    "missing_dependency": 6,
 }
+
+MIN_PYTHON = (3, 8)
+
+
+def _module_version(name: str) -> tuple[bool, str | None]:
+    """只读探测：模块能否导入、版本号是什么。"""
+    try:
+        module = __import__(name)
+    except Exception:
+        return False, None
+    return True, getattr(module, "__version__", None)
+
+
+def check_deps() -> dict:
+    """输出运行依赖与外部服务声明，供 --check-deps 使用。"""
+    version = ".".join(str(x) for x in sys.version_info[:3])
+    py_ok = sys.version_info >= MIN_PYTHON
+    cv2_ok, cv2_version = _module_version("cv2")
+    return {
+        "ok": py_ok,
+        "python": version,
+        "platform": sys.platform,
+        "dependencies": [
+            {
+                "name": "Python >= 3.8",
+                "type": "required",
+                "available": py_ok,
+                "version": version,
+                "feature": "运行全部脚本",
+                "install": "安装 Python 3.8 或更高版本",
+                "required": True,
+            },
+            {
+                "name": "opencv-python-headless",
+                "type": "optional",
+                "available": cv2_ok,
+                "version": cv2_version,
+                "feature": "--frame 抽帧验水印",
+                "install": "pip install opencv-python-headless",
+                "required": False,
+            },
+        ],
+        "services": [
+            {
+                "name": "api.xingzhige.com",
+                "type": "service",
+                "available": None,
+                "checked": False,
+                "data_sent": "抖音分享链接或 aweme_id",
+                "auth": False,
+                "required_for": "抖音解析",
+            },
+            {
+                "name": "api.bilibili.com",
+                "type": "service",
+                "available": None,
+                "checked": False,
+                "data_sent": "BV/av 号、cid",
+                "auth": False,
+                "required_for": "B站解析",
+            },
+        ],
+    }
 
 
 def detect_platform(url: str) -> str:
@@ -94,6 +158,21 @@ def classify(raw: str) -> tuple[str, str]:
 
 
 def run(args: argparse.Namespace) -> dict:
+    if sys.version_info < MIN_PYTHON:
+        raise SkillError(
+            "missing_dependency",
+            f"需要 Python 3.8 或更高版本，当前为 {sys.version.split()[0]}",
+            "升级 Python 后重试；核心路径不使用第三方运行时依赖。",
+        )
+    if args.frame:
+        cv2_ok, _ = _module_version("cv2")
+        if not cv2_ok:
+            print(
+                "[warn] 未安装 cv2，--frame 抽帧将被跳过；"
+                "需要时执行 pip install opencv-python-headless",
+                file=sys.stderr,
+            )
+
     platform, source = classify(args.input.strip())
     info = PLATFORMS[platform]
     module = info["module"]
@@ -222,7 +301,14 @@ def run(args: argparse.Namespace) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser(description="下载抖音 / B站视频")
     ap.add_argument(
-        "input", help="分享链接、分享口令整段文字、BV/av 号，或抖音纯数字 aweme_id"
+        "input",
+        nargs="?",
+        help="分享链接、分享口令整段文字、BV/av 号，或抖音纯数字 aweme_id",
+    )
+    ap.add_argument(
+        "--check-deps",
+        action="store_true",
+        help="只检查运行依赖与外部服务声明，输出 JSON，不解析视频",
     )
     ap.add_argument("--out", help="保存目录，默认 ~/Downloads")
     ap.add_argument(
@@ -246,6 +332,17 @@ def main() -> int:
     args = ap.parse_args()
 
     try:
+        if args.check_deps:
+            report = check_deps()
+            emit(report, args.pretty)
+            return 0 if report["ok"] else EXIT_CODES["missing_dependency"]
+        if not args.input:
+            raise SkillError(
+                "no_url",
+                "缺少输入",
+                "需要视频分享链接、BV/av 号或抖音 aweme_id；"
+                "也可以用 --check-deps 检查运行依赖。",
+            )
         emit(run(args), args.pretty)
         return 0
     except SkillError as exc:
